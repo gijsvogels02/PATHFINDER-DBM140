@@ -16,7 +16,7 @@ def load_matrix():
     return script1.matrix
 
 # ---------------------------
-# A* Pathfinding
+# Pathfinding
 # ---------------------------
 def astar(matrix, start, goal):
     rows, cols = len(matrix), len(matrix[0])

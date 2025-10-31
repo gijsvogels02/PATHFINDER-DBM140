@@ -1,0 +1,54 @@
+/* Zorg voor een minimalistische moderne stijl */
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f0f4ff, #e0ecff); /* soft blue gradient */
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+}
+
+/* Container voor centrering */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Title styling */
+#arrow-title {
+  font-size: 2.5rem;        /* adjust size as needed */
+  margin-bottom: 30px;      /* space between title and arrow box */
+  color: #0044aa;           /* nice dark blue */
+}
+
+/* The fixed blue container */
+#arrow-container {
+  width: 300px;                  /* width of the square */
+  height: 300px;                 /* height of the square */
+  display: flex;
+  justify-content: center;       /* center arrow horizontally */
+  align-items: center;           /* center arrow vertically */
+  background-color: transparent;  /* no fill */
+  border-radius: 50%;           /* optional rounded corners */
+  /* Remove border and background for pure circle */
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* De pijl */
+#arrow {
+  font-size: 20rem;
+  color: #0077ff;
+  transition: transform 1s ease-in-out; /* vloeiende overgang */
+  transform-origin: 150px 150px; /* Center of SVG */
+}
+
+/* SVG styling for the arrow */
+#arrow-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

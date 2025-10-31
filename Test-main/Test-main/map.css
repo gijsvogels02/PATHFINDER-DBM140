@@ -1,0 +1,96 @@
+/* General styling */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #dff6ff, #b5d9ff);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.map-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 95vw;
+  max-width: 800px;
+}
+
+.map-title {
+  font-size: 2.5rem;
+  color: #0044aa;
+  margin-bottom: 24px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Map container */
+.map-area {
+  width: 100%;
+  aspect-ratio: 740 / 480; /* preserve desktop aspect ratio */
+  background: linear-gradient(135deg, #e3f2fd 60%, #bbdefb 100%);
+  border-radius: 28px;
+  box-shadow: 0 2px 18px rgba(0,0,0,0.09);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e0ecff;
+}
+
+/* Map squares */
+.map-square {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  color: #0044aa;
+  border-radius: 16px;
+  background: #e0ecff;
+  border: 1px solid #c9dfff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  gap: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  font-size: clamp(0.8rem, 1vw, 1rem); /* scales font on phones */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-square:hover { background: #c9dfff; box-shadow: 0 4px 18px rgba(0,0,0,0.12); }
+.map-square.selected { background: #1976d2; color: white; box-shadow: 0 4px 18px rgba(25,118,210,0.15); border: 1.5px solid #1976d2; }
+
+.map-icon { margin-right: 0.3rem; }
+
+/* Positions using percentages */
+#entrance1 { bottom: 3.75%; left: 9.5%; }
+#entrance2 { bottom: 3.75%; right: 9.5%; }
+#stage { top: 12.5%; left: 50%; transform: translateX(-50%); width: 18%; height: 14.5%; }
+#bar1 { top: 37.5%; left: 15%; }
+#bar2 { top: 41.7%; left: 43.2%; }
+#bar3 { top: 37.5%; right: 15%; }
+#foodtruck { bottom: 25%; right: 21.1%; }
+#exit { bottom: 7.9%; left: 50%; transform: translateX(-50%); }
+
+/* Next button */
+.next-btn {
+  margin-top: 12px;
+  padding: 12px 28px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: none;
+  background: #1976d2;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  transition: all 0.2s ease;
+}
+
+.next-btn:hover { background: #1565c0; box-shadow: 0 4px 18px rgba(0,0,0,0.12); }
+.next-btn:disabled { background: #a0c4ff; cursor: not-allowed; }
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .map-title { font-size: 2rem; margin-bottom: 16px; }
+  .next-btn { padding: 10px 22px; font-size: 0.9rem; }
+}

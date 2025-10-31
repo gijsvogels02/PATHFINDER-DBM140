@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direction Challenge</title>
+<style>
+/* GENERAL LAYOUTT */
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  background: linear-gradient(135deg,#dff6ff,#b5d9ff);
+  font-family: Arial, sans-serif;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* TITLE */
+#arrow-title {
+  font-size: 2rem;
+  color: #0044aa;
+  font-weight: 700;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+/* BUTTON */
+#enable-compass {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,.15);
+  margin-bottom: 20px;
+  transition: all .2s ease-in-out;
+}
+#enable-compass:hover {
+  background: #0d47a1;
+  box-shadow: 0 6px 12px rgba(0,0,0,.2);
+}
+
+/* For the ARROW */
+#arrow-container {
+  width: 300px;
+  height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg,#e3f2fd 60%,#bbdefb 100%);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
+
+#arrow {
+  width: 250px;
+  height: 250px;
+  transform-origin: 50% 50%;
+}
+#arrow-shape {
+  fill: #1976d2;
+  stroke: #0d47a1;
+  stroke-width: 2;
+}
+
+/*  STATUS TEXT  */
+#status-text {
+  display: none;
+}
+
+/* INFO SECTION (heatmap + text) */
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+#crowd-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+#crowd-square {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg,#e3f2fd 60%,#bbdefb 100%);
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  border: 1px solid #e0ecff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  position: relative;
+}
+
+#crowd-blobs {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 0.5px;
+  justify-items: center;
+  align-items: center;
+}
+
+.crowd-blob {
+  width: 7.5px;
+  height: 7.5px;
+  border-radius: 50%;
+}
+
+/* NEW: Path overlay canvas */
+#path-canvas {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(100% - 8px);
+  height: calc(100% - 8px);
+  pointer-events: none;
+}
+
+#crowd-caption {
+  font-size: 0.8rem;
+  color: #1976d2;
+  margin-top: 6px;
+  opacity: 0.9;
+}
+
+/* Text box next to heatmap */
+#route-saying {
+  max-width: 240px;
+  min-height: 70px;
+  background: linear-gradient(135deg,#e3f2fd 60%,#bbdefb 100%);
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  border: 1px solid #e0ecff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05em;
+  color: #1976d2;
+  font-weight: 500;
+  padding: 16px 18px;
+  text-align: center;
+}
+
+/* forMOBILE OPTIMIZATION  */
+@media (max-width: 600px) {
+  #arrow-title {
+    font-size: 1.6rem;
+    margin-top: 24px;
+    margin-bottom: 16px;
+    padding: 0 20px;
+  }
+
+  #arrow-container {
+    width: 260px;
+    height: 260px;
+    margin-bottom: 20px;
+  }
+
+  #arrow {
+    width: 235px;
+    height: 235px;
+  }
+
+  #crowd-square {
+    width: 90px;
+    height: 90px;
+  }
+
+  .crowd-blob {
+    width: 7.5px;
+    height: 7.5px;
+  }
+
+  #path-canvas {
+    width: calc(100% - 8px);
+    height: calc(100% - 8px);
+  }
+
+  #route-saying {
+    max-width: 180px;
+    font-size: 0.95rem;
+    padding: 12px 14px;
+  }
+
+  #crowd-caption {
+    font-size: 0.75rem;
+  }
+}
+</style>
+</head>
+<body>
+  <h1 id="arrow-title">Walk into the direction of the arrow</h1>
+  <button id="enable-compass">Enable Compass</button>
+  <div id="arrow-container">
+    <svg id="arrow" viewBox="0 0 120 120">
+      <polygon id="arrow-shape" points="60,15 100,100 60,75 20,100" />
+    </svg>
+  </div>
+  <div id="status-text">Waiting for compass...</div>
+
+  <div class="info-row">
+    <div id="crowd-container">
+      <div id="crowd-square">
+        <div id="crowd-blobs"></div>
+        <canvas id="path-canvas"></canvas>
+      </div>
+      <div id="crowd-caption">heatmap of the crowd</div>
+    </div>
+    <div id="route-saying"></div>
+  </div>
+
+<script>
+const API_URL = "https://acidy-uncensured-lashawn.ngrok-free.dev";
+
+let pathData = [];   // store the full path from backend
+let currentStep = 0; // your position index on that path
+
+// ---- Route sayings
+const sayings = [
+  "We picked this route because it avoids the busiest areas.",
+  "This way keeps you out of the densest parts of the crowd.",
+  "Get there faster with a route that's 30% less crowded.",
+  "Move more easily, this route is short and 15% less crowded.",
+  "Save time with a path that cuts through 40% less congestion."
+];
+document.getElementById("route-saying").textContent =
+  sayings[Math.floor(Math.random() * sayings.length)];
+
+// ---- Draw path & moving square
+async function drawPath() {
+  const canvas = document.getElementById("path-canvas");
+  const ctx = canvas.getContext("2d");
+
+  const rect = canvas.getBoundingClientRect();
+  const canvasWidth = rect.width;
+  const canvasHeight = rect.height;
+
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvasWidth * dpr;
+  canvas.height = canvasHeight * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+  if (!pathData || pathData.length === 0) return;
+
+  const gridSize = 10;
+  const cellWidth = canvasWidth / gridSize;
+  const cellHeight = canvasHeight / gridSize;
+
+  // Draw the black path line
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  pathData.forEach((point, i) => {
+    const [r, c] = point;
+    const x = c * cellWidth + cellWidth / 2;
+    const y = r * cellHeight + cellHeight / 2;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Draw end goal square (red, stays at end)
+  const [endRow, endCol] = pathData[pathData.length - 1];
+  const endX = endCol * cellWidth + cellWidth / 2;
+  const endY = endRow * cellHeight + cellHeight / 2;
+  const squareSize = 6;
+  ctx.fillStyle = "#ff5252";
+  ctx.strokeStyle = "#f44336";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.rect(endX - squareSize / 2, endY - squareSize / 2, squareSize, squareSize);
+  ctx.fill();
+  ctx.stroke();
+
+  // Draw moving start square (black)
+  if (currentStep < pathData.length) {
+    const [curRow, curCol] = pathData[currentStep];
+    const curX = curCol * cellWidth + cellWidth / 2;
+    const curY = curRow * cellHeight + cellHeight / 2;
+    ctx.fillStyle = "#000000";
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.rect(curX - squareSize / 2, curY - squareSize / 2, squareSize, squareSize);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  console.log("Redrew path with moving square at step:", currentStep);
+}
+
+// ---- Heatmap generator (fetch path as well)
+async function generateHeatmap() {
+  try {
+    const resMatrix = await fetch(`${API_URL}/get_matrix`, {
+      method: "GET",
+      headers: { "ngrok-skip-browser-warning": "true" }
+    });
+    const dataMatrix = await resMatrix.json();
+    const matrix = dataMatrix.matrix;
+    const c = document.getElementById("crowd-blobs");
+    c.innerHTML = "";
+    for (let r = 0; r < 10; r++) {
+      for (let col = 0; col < 10; col++) {
+        const b = document.createElement("div");
+        b.className = "crowd-blob";
+        const val = matrix[r][col];
+        if (val === 0) b.style.background = "#66bb6a";
+        else if (val === 1) b.style.background = "#ffeb3b";
+        else b.style.background = "#ff5252";
+        c.appendChild(b);
+      }
+    }
+
+    // Fetch path from backend once
+    const resPath = await fetch(`${API_URL}/get_path`, {
+      method: "GET",
+      headers: { "ngrok-skip-browser-warning": "true" }
+    });
+    const dataPath = await resPath.json();
+    pathData = dataPath.path || [];
+    currentStep = 0;
+    await drawPath();
+  } catch (err) {
+    console.error("Failed to fetch matrix or path:", err);
+  }
+}
+generateHeatmap();
+
+// ---- Compass + tap logic
+const arrow = document.getElementById("arrow");
+const enableButton = document.getElementById("enable-compass");
+
+let currentTargetAngle = null;
+let currentHeading = null, displayHeading = null;
+let smoothAlpha = null;
+const tolerance = 7;
+let withinTarget = false;
+let compassEnabled = false;
+
+async function fetchNextAngle() {
+  try {
+    const response = await fetch(`${API_URL}/get_angle`, {
+      method: "GET",
+      headers: { "ngrok-skip-browser-warning": "true" }
+    });
+    const data = await response.json();
+    console.log("Received angle from server:", data.angle);
+    if (data.angle > 360) {
+      console.log("All angles completed! Going to ending page.");
+      setTimeout(() => location.href = "ending.html", 1000);
+    } else {
+      currentTargetAngle = data.angle;
+    }
+  } catch (err) {
+    console.error("Error fetching angle:", err);
+  }
+}
+
+async function registerTap() {
+  try {
+    const response = await fetch(`${API_URL}/tap`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true"
+      },
+      body: JSON.stringify({ tap: true })
+    });
+    const data = await response.json();
+    console.log("Tap registered:", data);
+    await fetchNextAngle();
+
+    // Move your "current position" along the path by one step
+    if (pathData.length > 0 && currentStep < pathData.length - 1) {
+      currentStep++;
+      drawPath(); // redraw with updated position
+    }
+  } catch (err) {
+    console.error("Error registering tap:", err);
+  }
+}
+
+enableButton.addEventListener("click", () => {
+  if (typeof DeviceOrientationEvent !== "undefined" &&
+      typeof DeviceOrientationEvent.requestPermission === "function") {
+    DeviceOrientationEvent.requestPermission().then(state => {
+      if (state === "granted") startCompass();
+      else alert("Compass access denied");
+    });
+  } else startCompass();
+});
+
+function startCompass() {
+  enableButton.style.display = "none";
+  compassEnabled = true;
+  window.addEventListener("deviceorientation", handleOrientation, true);
+  requestAnimationFrame(updateArrowSmooth);
+  document.body.addEventListener("click", handleTap);
+  fetchNextAngle();
+}
+
+function handleOrientation(e) {
+  let heading;
+  if (e.webkitCompassHeading !== undefined) {
+    // iPhone gives 0° = North → flip so 0° = South
+    heading = (e.webkitCompassHeading + 180) % 360;
+  } else if (e.alpha != null) {
+    // Android or other browsers: alpha = 0° when facing North → flip it too
+    heading = (360 - e.alpha + 180) % 360;
+  } else return;
+
+  if (smoothAlpha == null) smoothAlpha = heading;
+  smoothAlpha = lerpAngle(smoothAlpha, heading, 0.15);
+  currentHeading = smoothAlpha;
+}
+
+
+function lerpAngle(a, b, t) {
+  let diff = ((b - a + 540) % 360) - 180;
+  return (a + diff * t + 360) % 360;
+}
+
+function updateArrowSmooth() {
+  if (currentHeading != null && currentTargetAngle != null) {
+    if (displayHeading == null) displayHeading = currentHeading;
+    displayHeading = lerpAngle(displayHeading, currentHeading, 0.25);
+    const rot = currentTargetAngle - displayHeading;
+    arrow.style.transform = `rotate(${rot}deg)`;
+    const diff = Math.abs(((currentHeading - currentTargetAngle + 540) % 360) - 180);
+    withinTarget = diff <= tolerance;
+  }
+  requestAnimationFrame(updateArrowSmooth);
+}
+
+function handleTap() {
+  if (!compassEnabled) return;
+  if (withinTarget) {
+    console.log("Tap registered - user is pointing in the right direction!");
+    registerTap();
+  } else {
+    console.log("Tap ignored - not pointing in the right direction");
+  }
+}
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+

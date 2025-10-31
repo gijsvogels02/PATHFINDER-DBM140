@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Festival Map</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #dff6ff, #b5d9ff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .map-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 95vw;
+      max-width: 800px;
+    }
+
+    .map-title {
+      font-size: 2.5rem;
+      color: #0044aa;
+      margin-bottom: 24px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .map-area {
+      width: 100%;
+      aspect-ratio: 740 / 480;
+      background: linear-gradient(135deg, #e3f2fd 60%, #bbdefb 100%);
+      border-radius: 28px;
+      box-shadow: 0 2px 18px rgba(0,0,0,0.09);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #e0ecff;
+      margin-bottom: 20px;
+    }
+
+    .map-square {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 600;
+      color: #0044aa;
+      border-radius: 12px;
+      background: #e0ecff;
+      border: 1px solid #c9dfff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      gap: 0.3rem;
+      padding: 0.2rem 0.4rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      min-width: 50px;
+    }
+
+    .map-square:hover {
+      background: #c9dfff;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+    }
+
+    .map-square.selected {
+      background: #1976d2;
+      color: white;
+      box-shadow: 0 4px 18px rgba(25,118,210,0.15);
+      border: 1.5px solid #1976d2;
+    }
+
+    .map-icon { margin-right: 0.2rem; font-size: 1rem; }
+
+    /* Positions */
+    #entrance1 { bottom: 4%; left: 9%; }
+    #stage { top: 12%; left: 50%; transform: translateX(-50%); width: 16%; height: 14%; }
+    #bar1 { top: 37%; left: 15%; }
+    #bar2 { top: 37%; right: 15%; }
+    #foodtruck { bottom: 30%; right: 15%; }
+
+    .next-btn {
+      margin-top: 12px;
+      padding: 10px 22px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+      background: #1976d2;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      transition: all 0.2s ease;
+    }
+
+    .next-btn:hover { background: #1565c0; box-shadow: 0 4px 18px rgba(0,0,0,0.12); }
+    .next-btn:disabled { background: #a0c4ff; cursor: not-allowed; }
+
+    @media (max-width: 480px) {
+      .map-title { font-size: 1.8rem; margin-bottom: 12px; }
+      .map-square {
+        font-size: 0.75rem;
+        padding: 0.15rem 0.25rem;
+        min-width: 35px;
+        border-radius: 10px;
+      }
+      .map-icon { font-size: 0.8rem; }
+      .next-btn { padding: 8px 18px; font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="map-page">
+    <h1 class="map-title">Select where you want to go on the festival map</h1>
+    <div class="map-area">
+      <div class="map-square" data-location="Entrance/Exit" data-value="1" id="entrance1">
+        <i class="fa-solid fa-door-open map-icon"></i><span>Entrance/Exit</span>
+      </div>
+      <div class="map-square" data-location="Stage" data-value="3" id="stage">
+        <i class="fa-solid fa-music map-icon"></i><span>Stage</span>
+      </div>
+      <div class="map-square" data-location="Bar 1" data-value="4" id="bar1">
+        <i class="fa-solid fa-beer-mug-empty map-icon"></i><span>Bar 1</span>
+      </div>
+      <div class="map-square" data-location="Bar 2" data-value="6" id="bar2">
+        <i class="fa-solid fa-beer-mug-empty map-icon"></i><span>Bar 2</span>
+      </div>
+      <div class="map-square" data-location="Foodtruck" data-value="7" id="foodtruck">
+        <i class="fa-solid fa-hotdog map-icon"></i><span>Foodtruck</span>
+      </div>
+    </div>
+    <button class="next-btn" id="nextButton" disabled>Let's walk</button>
+  </div>
+
+<script>
+const squares = document.querySelectorAll('.map-square');
+const nextButton = document.getElementById('nextButton');
+let selectedSquare = null;
+
+squares.forEach(square => {
+  square.addEventListener('click', () => {
+    if (selectedSquare) selectedSquare.classList.remove('selected');
+    square.classList.add('selected');
+    selectedSquare = square;
+    nextButton.disabled = false;
+  });
+});
+
+nextButton.addEventListener('click', async () => {
+  if (!selectedSquare) return;
+
+  const locationName = selectedSquare.dataset.location;
+  const locationValue = selectedSquare.dataset.value;
+
+  // Store in memory (since localStorage doesn't work in Claude artifacts)
+  window.selectedLocationName = locationName;
+  window.selectedLocationValue = locationValue;
+
+  try {
+    const response = await fetch("https://acidy-uncensured-lashawn.ngrok-free.dev//send_location", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true"
+      },
+      body: JSON.stringify({ location: { name: locationName, value: locationValue } })
+    });
+
+    const data = await response.json();
+    console.log("Server response:", data);
+
+    if (data.status === "ok") {
+      window.location.href = "arrow.html";
+    } else {
+      alert("Something went wrong sending location to server.");
+    }
+  } catch (err) {
+    console.error("Error sending location:", err);
+    alert("Could not connect to backend — check if Flask & ngrok are running.");
+  }
+});
+</script>
+
+</body>
+</html>
+
+
+
+
+
